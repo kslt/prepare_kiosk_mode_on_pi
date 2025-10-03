@@ -1,14 +1,53 @@
 #!/bin/bash
 
-# === Meny ===
-echo "Välj åtgärd:"
+# === STATUSKONTROLL ===
+echo "=== Kontroll av systemstatus ==="
+
+# Kolla unclutter
+if dpkg -s unclutter &> /dev/null; then
+    echo "✔ unclutter är installerat"
+else
+    echo "✘ unclutter är INTE installerat"
+fi
+
+# Kolla LightDM
+LIGHTDM_OK=false
+for file in /usr/share/lightdm/lightdm.conf.d/*.conf; do
+    if grep -q "xserver-command=X -nocursor" "$file"; then
+        LIGHTDM_OK=true
+    fi
+done
+if $LIGHTDM_OK; then
+    echo "✔ LightDM är konfigurerat med 'xserver-command=X -nocursor'"
+else
+    echo "✘ LightDM har INTE raden 'xserver-command=X -nocursor'"
+fi
+
+# Kolla indexfil
+if [[ -f /var/www/html/index.lighttpd.html ]]; then
+    echo "✘ index.lighttpd.html finns kvar"
+else
+    echo "✔ index.lighttpd.html är redan borttagen"
+fi
+
+# Kolla Wi-Fi
+CONFIG="/boot/firmware/config.txt"
+DISABLE_LINE="dtoverlay=disable-wifi"
+if grep -q "^$DISABLE_LINE" "$CONFIG"; then
+    echo "✔ Wi-Fi är AVSTÄNGT permanent"
+else
+    echo "✔ Wi-Fi är PÅSLAGET"
+fi
+
+echo ""
+echo "=== Vad vill du göra? ==="
 echo "1) Installera unclutter och uppdatera LightDM"
 echo "2) Ta bort index.lighttpd.html"
 echo "3) Hantera Wi-Fi (av/på permanent)"
 echo "4) Gör alla"
 read -p "Ange val (1-4): " choice
 
-# === Y/N questions function ===
+# === Hjälpfunktion för ja/nej ===
 confirm() {
     read -p "$1 (j/n): " answer
     case "$answer" in
@@ -17,10 +56,9 @@ confirm() {
     esac
 }
 
-# === Part 1: Install unclutter and LightDM-ändring ===
+# === Del 1: unclutter + LightDM ===
 install_unclutter_lightdm() {
     if confirm "Vill du installera unclutter och uppdatera LightDM?"; then
-        # Check unclutter
         if dpkg -s unclutter &> /dev/null; then
             echo "✔ unclutter är redan installerat."
         else
@@ -29,7 +67,6 @@ install_unclutter_lightdm() {
             sudo apt-get install -y unclutter
         fi
 
-        # Check LightDM-filer
         for file in /usr/share/lightdm/lightdm.conf.d/*.conf; do
             if grep -q "xserver-command=X -nocursor" "$file"; then
                 echo "✔ Raden finns redan i $file"
@@ -43,7 +80,7 @@ install_unclutter_lightdm() {
     fi
 }
 
-# === Part 2: Delete index.lighttpd.html ===
+# === Del 2: index.lighttpd.html ===
 remove_index_file() {
     if [[ -f /var/www/html/index.lighttpd.html ]]; then
         if confirm "Vill du ta bort /var/www/html/index.lighttpd.html?"; then
@@ -53,15 +90,12 @@ remove_index_file() {
             echo "Åtgärden avbruten."
         fi
     else
-        echo "✔ Filen /var/www/html/index.lighttpd.html finns inte redan."
+        echo "✔ Filen finns redan inte."
     fi
 }
 
-# === Part 3: Wi-Fi on/off permanent ===
+# === Del 3: Wi-Fi toggle ===
 wifi_toggle() {
-    CONFIG="/boot/firmware/config.txt"
-    DISABLE_LINE="dtoverlay=disable-wifi"
-
     ask_reboot() {
         read -p "🔄 Vill du starta om nu? (J/N): " reboot
         if [[ "$reboot" =~ ^[Jj]$ ]]; then
@@ -95,7 +129,7 @@ wifi_toggle() {
     fi
 }
 
-# === Run depending on choice of action ===
+# === Kör beroende på val ===
 case "$choice" in
     1) install_unclutter_lightdm ;;
     2) remove_index_file ;;
