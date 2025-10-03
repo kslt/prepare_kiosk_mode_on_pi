@@ -2,4 +2,4 @@
 
 1. Tanka hem filerna med: git clone <repo-url>
 2. Gör filen körbar genom: sudo chmod +x setup.sh
-3. Kör filen: ./setup.sh
+3. Kör filen: sudo bash setup.sh
