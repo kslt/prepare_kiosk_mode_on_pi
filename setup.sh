@@ -4,7 +4,7 @@
 echo "=== Kontroll av systemstatus ==="
 
 # Kolla unclutter
-if dpkg -s unclutter &> /dev/null; then
+if dpkg-query -W -f='${Status}' unclutter 2>/dev/null | grep -q "install ok installed"; then
     echo "✔ unclutter är installerat"
 else
     echo "✘ unclutter är INTE installerat"
