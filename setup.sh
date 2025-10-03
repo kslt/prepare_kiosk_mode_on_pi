@@ -45,7 +45,8 @@ echo "1) Installera unclutter och uppdatera LightDM"
 echo "2) Ta bort index.lighttpd.html"
 echo "3) Hantera Wi-Fi (av/på permanent)"
 echo "4) Gör alla"
-read -p "Ange val (1-4): " choice
+echo "0) Avbryt"
+read -p "Ange val (0-4): " choice
 
 # === Hjälpfunktion för ja/nej ===
 confirm() {
@@ -135,6 +136,7 @@ case "$choice" in
     2) remove_index_file ;;
     3) wifi_toggle ;;
     4) install_unclutter_lightdm; remove_index_file; wifi_toggle ;;
+    0) echo "Avbryter. Ingen åtgärd utförd." ;;
     *) echo "Ogiltigt val." ;;
 esac
 
