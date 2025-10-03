@@ -19,18 +19,23 @@ confirm() {
 
 # === Part 1: Install unclutter and LightDM-ändring ===
 install_unclutter_lightdm() {
-    if confirm "Vill du verkligen installera unclutter och uppdatera LightDM?"; then
-        echo "Installerar unclutter..."
-        sudo apt-get update
-        sudo apt-get install -y unclutter
+    if confirm "Vill du installera unclutter och uppdatera LightDM?"; then
+        # Check unclutter
+        if dpkg -s unclutter &> /dev/null; then
+            echo "✔ unclutter är redan installerat."
+        else
+            echo "Installerar unclutter..."
+            sudo apt-get update
+            sudo apt-get install -y unclutter
+        fi
 
-        echo "Lägger till 'xserver-command=X -nocursor' i LightDM-konfiguration..."
+        # Check LightDM-filer
         for file in /usr/share/lightdm/lightdm.conf.d/*.conf; do
-            if ! grep -q "xserver-command=X -nocursor" "$file"; then
-                echo "xserver-command=X -nocursor" | sudo tee -a "$file" > /dev/null
-                echo "Uppdaterade $file"
+            if grep -q "xserver-command=X -nocursor" "$file"; then
+                echo "✔ Raden finns redan i $file"
             else
-                echo "Raden finns redan i $file"
+                echo "Lägger till raden i $file..."
+                echo "xserver-command=X -nocursor" | sudo tee -a "$file" > /dev/null
             fi
         done
     else
@@ -40,11 +45,15 @@ install_unclutter_lightdm() {
 
 # === Part 2: Delete index.lighttpd.html ===
 remove_index_file() {
-    if confirm "Vill du verkligen ta bort /var/www/html/index.lighttpd.html?"; then
-        sudo rm -f /var/www/html/index.lighttpd.html
-        echo "Filen borttagen."
+    if [[ -f /var/www/html/index.lighttpd.html ]]; then
+        if confirm "Vill du ta bort /var/www/html/index.lighttpd.html?"; then
+            sudo rm -f /var/www/html/index.lighttpd.html
+            echo "Filen borttagen."
+        else
+            echo "Åtgärden avbruten."
+        fi
     else
-        echo "Åtgärden avbruten."
+        echo "✔ Filen /var/www/html/index.lighttpd.html finns inte redan."
     fi
 }
 
