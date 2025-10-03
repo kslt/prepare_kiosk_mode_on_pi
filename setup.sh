@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Välkommen till Pi Kiosk Setup! (v1.5)"
+
 # === STATUSKONTROLL ===
 echo "=== Kontroll av systemstatus ==="
 
